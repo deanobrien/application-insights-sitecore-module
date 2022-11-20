@@ -1,0 +1,1 @@
+# application-insights-sitecore-module
