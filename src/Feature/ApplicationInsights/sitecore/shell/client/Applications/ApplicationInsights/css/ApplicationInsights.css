@@ -1,0 +1,143 @@
+﻿body {
+    background: #f8f8f8 url(/sitecore/shell/client/Applications/LaunchPad/Assets/launchpad-bg@1x.png) top left no-repeat;
+}
+
+.row {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#appDropdown.btn-default {
+    min-width: 150px
+}
+
+.btn-default, .btn-primary {
+    min-width: 50px;
+    height: 36px;
+    text-shadow: none;
+    outline: none;
+}
+
+.btn-primary, .btn-primary:hover {
+    background-color: #bfe1fa;
+    background-image: none;
+    color: #000;
+    opacity: 1;
+}
+
+/* Sitecore Styles  */
+
+.sc-launchpad-item {
+    font-family: "Montserrat";
+    font-style: normal;
+    font-size: 14px;
+    line-height: 17px;
+    color: #000;
+    overflow-wrap: break-word;
+    overflow: hidden;
+}
+
+    .sc-launchpad-item p {
+        overflow-wrap: break-word !important;
+        width: 72%;
+    }
+
+    .sc-launchpad-item.detailed {
+        position: relative;
+        height: auto !important;
+        display: block;
+        width: 700px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        padding-left: 90px;
+    }
+
+        .sc-launchpad-item.detailed .icon {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+    .sc-launchpad-item a {
+        color: #333 !important;
+    }
+
+    .sc-launchpad-item .sc-launchpad-text a {
+        color: #000 !important;
+    }
+
+.sc-globalHeader-loginInfo {
+    position: absolute;
+    right: 0 !important;
+}
+
+/*  Exceptions Style  */
+
+#groupedExceptions .sc-launchpad-item {
+    width: 100%;
+}
+
+    #groupedExceptions .sc-launchpad-item .icon {
+        font-size: 10px;
+        font-weight: 600;
+        text-align: center;
+        padding: 3px;
+    }
+
+        #groupedExceptions .sc-launchpad-item .icon span.count {
+            padding-top: 20px;
+            padding-bottom: 5px;
+            font-size: 22px;
+            display: block;
+        }
+
+/*  JS Plumb Styles  */
+
+#jsplumb-container {
+    position: relative;
+    height: 420px;
+    margin: 20px
+}
+
+.currentApplication {
+    left: calc(50% - 32px);
+    top: calc(100% - 270px);
+}
+
+    .currentApplication p {
+        display: block
+    }
+
+    .currentApplication b {
+        display: block;
+        padding-top: 10px
+    }
+
+.app {
+    position: absolute;
+}
+
+    .app div {
+        width: 32px;
+        height: 32px;
+        position: absolute;
+    }
+
+.error {
+    background: #faa;
+}
+
+.error div.result {
+    background-image: url('/sitecore/shell/client/Applications/ApplicationInsights/img/error.png')
+}
+.warning div.result {
+    background-image: url('/sitecore/shell/client/Applications/ApplicationInsights/img/warning.png')
+}
+.good .result, .error .result {
+    left: 5px;
+    bottom: 5px
+}
+
+.good div.result {
+    background-image: url('/sitecore/shell/client/Applications/ApplicationInsights/img/good.png')
+}

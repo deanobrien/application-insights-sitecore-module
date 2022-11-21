@@ -1,0 +1,327 @@
+﻿@model DeanOBrien.Feature.ApplicationInsights.Models.ApplicationDetails
+@using Newtonsoft.Json
+
+@using DeanOBrien.Foundation.DataAccess.Models
+<script src="/sitecore/shell/client/Applications/ApplicationInsights/js/jquery-1.12.4.min.js" charset="utf-8" type="text/javascript"></script>
+<link rel="shortcut icon" href="/sitecore/images/favicon.ico" />
+<link href="/sitecore/shell/client/Speak/Assets/css/speak-default-theme.css" rel="stylesheet" type="text/css" />
+<link href="/sitecore/shell/client/Applications/LaunchPad/LaunchPad.css" rel="stylesheet" type="text/css" />
+<link href="/sitecore/shell/client/Applications/ExperienceAnalytics/Common/ExperienceAnalytics.css" rel="stylesheet" type="text/css" />
+<link href="/sitecore/shell/client/Applications/ApplicationInsights/css/ApplicationInsights.css" rel="stylesheet" type="text/css" />
+
+@{
+    var currentApp = Model.Application.Id.ToString().ToUpper();
+    var currentAppInList = new List<Application>();
+    currentAppInList.Add(Model.Application);
+    var jsplumbHeight = 280;
+    var width = 270;
+    var height = 64;
+    double top;
+    double left;
+    double totalApps;
+
+    var count = 0;
+    var positionString = "";
+    var zones = 1;
+    double zoneHeight = 0;
+    var applicationGroups = new List<List<Application>>();
+    applicationGroups.Add(currentAppInList);
+    if (Model.FirstTier.Count != 0)
+    {
+        if (Model.FirstTier.Count > 10) { jsplumbHeight = 350; }
+        applicationGroups.Add(Model.FirstTier);
+        zones++;
+        if (Model.SecondTier.Count != 0)
+        {
+            jsplumbHeight = 370;
+            zones++;
+            applicationGroups.Add(Model.SecondTier);
+            if (Model.ThirdTier.Count != 0)
+            {
+                jsplumbHeight = 420;
+                zones++;
+                applicationGroups.Add(Model.ThirdTier);
+                if (Model.ForthTier.Count != 0)
+                {
+                    zones++;
+                    jsplumbHeight = 460;
+                    applicationGroups.Add(Model.ForthTier);
+                    if (Model.FifthTier.Count != 0)
+                    {
+                        zones++;
+                        jsplumbHeight = 500;
+                        applicationGroups.Add(Model.FifthTier);
+                    }
+                }
+            }
+        }
+    }
+    zoneHeight = 100 / zones;
+
+    var displayedApps = new List<Guid>();
+    displayedApps.Add(Model.Application.Id);
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <style>
+        #jsplumb-container {
+            height: @(jsplumbHeight) px;
+        }
+        .currentApplication
+        {
+            left:calc(50% - @(width / 2)px);
+            top:calc(100% - @(height)px);
+        }
+    </style>
+</head>
+<body class="sc">
+    <header class="sc-globalHeader">
+        <div class="row sc-globalHeader-content">
+            <div class="col-md-6">
+                <div class="sc-globalHeader-startButton">
+                    <a class="sc-global-logo medium" href="/sitecore/shell/sitecore/client/applications/launchpad"></a>
+                </div>
+                <div class="sc-globalHeader-navigationToggler">
+
+                </div>
+                <div class="sc-globalheader-appName">
+
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="sc-globalHeader-loginInfo">
+                    <ul data-sc-id="c_c642516f92b266a2" class="sc-accountInformation sc_AccountInformation_3 data-sc-registered" data-sc-require="/-/speak/v1/business/AccountInformation.js">
+                        <li>
+                            Administrator
+                            <img src="/temp/iconcache/office/32x32/default_user.png">
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="sc-applicationContent">
+        <header class="sc-applicationHeader">
+
+            <div class="sc-applicationHeader-row1 no-breadcrumb">
+                <div class="sc-applicationHeader-content">
+                    <div class="sc-applicationHeader-title">
+                        <span data-sc-id="Text2" class="sc-text sc_Text_8 data-sc-registered" data-bind="text: text, visible: isVisible" data-sc-require="/-/speak/v1/business/text.js">Sitecore Experience Platform</span>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+    </section>
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Application Insights for: @Model.Application.Title</h2>
+            <div>
+                @if (!string.IsNullOrWhiteSpace(Model.InnerMessageBase64))
+                {
+                    <a href="@(Model.Application.Id)?problemIdBase64=@(Model.ProblemIdBase64)&timespan=@(Model.TimeSpan)" class="btn btn-default">Back</a>
+                }
+                else if (!string.IsNullOrWhiteSpace(Model.ProblemIdBase64))
+                {
+                    <a href="@(Model.Application.Id)?timespan=@(Model.TimeSpan)" class="btn btn-default">Back</a>
+                }
+                <a href="?timespan=1h" class="btn btn-default @if (Model.TimeSpan == "1h"){ @Html.Raw("btn-primary");}">1hr</a>
+                <a href="?timespan=2h" class="btn btn-default @if (Model.TimeSpan == "2h"){ @Html.Raw("btn-primary");}">2hr</a>
+                <a href="?timespan=6h" class="btn btn-default @if (Model.TimeSpan == "6h"){ @Html.Raw("btn-primary");}">6hr</a>
+                <a href="?timespan=1d" class="btn btn-default @if (Model.TimeSpan == "1d"){ @Html.Raw("btn-primary");}">1d</a>
+                <a href="?timespan=3d" class="btn btn-default @if (Model.TimeSpan == "3d"){ @Html.Raw("btn-primary");}">3d</a>
+                <a href="?timespan=7d" class="btn btn-default @if (Model.TimeSpan == "7d"){ @Html.Raw("btn-primary");}">7d</a>
+                <select id="appDropdown" class="btn btn-default">
+                    <option value="40e38b9f-004b-4da2-a41e-a15e4c2326ca">Content Management</option>
+                </select>
+            </div>
+
+            <div id="groupedExceptions">
+                <h3>Grouped Exceptions</h3>
+                @if (!string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsId) && !string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsKey))
+                {
+                    <img src="~/Common/images/giphy.gif" class="loader">
+                    <p class="noResult" style="display:none">None found</p>
+                }
+                else
+                {
+                    <p>Please set <b>ApplicationInsightsId</b> and <b>ApplicationInsightsKey</b> for this application to see data.</p>
+                }
+                <script id="groupedExceptionTpl" type="text/template">
+                    <div class="sc-launchpad-item">
+                        <span class='icon'>
+                            <span class="count">{{Count}}</span>
+                            COUNT
+                        </span>
+                        <span>
+                            <b>ProblemID:</b> <a href="{{ApplicationId}}?problemIdBase64={{ProblemIdBase64}}&innerMostMessageBase64={{InnerMostMessageBase64}}&timespan=@(Model.TimeSpan)">{{ProblemId}}</a><br />
+                        </span>
+                    </div>
+                </script>
+
+                <script id="groupedExceptionWithMessageTpl" type="text/template">
+                    <div class="sc-launchpad-item detailed">
+                        <span class='icon'>
+                            <span class="count">{{Count}}</span>
+                            COUNT
+                        </span>
+                        <span>
+                            <b>ProblemID:</b> <a href="{{ApplicationId}}?problemIdBase64={{ProblemIdBase64}}&innerMostMessageBase64={{InnerMostMessageBase64}}&timespan=@(Model.TimeSpan)">{{ProblemId}}</a><br /><br />
+                            <b>Message:</b> <a href="{{ApplicationId}}?problemIdBase64={{ProblemIdBase64}}&innerMostMessageBase64={{InnerMostMessageBase64}}&timespan=@(Model.TimeSpan)">{{InnerMostMessage}}</a>
+                        </span>
+                    </div>
+                </script>
+                <script id="singleGroupedExceptionTpl" type="text/template">
+                    <div class="sc-launchpad-item detailed">
+                        <span class='icon'>
+                            <span class="count">{{Count}}</span>
+                            COUNT
+                        </span>
+                        <div>
+                            <p>
+                                <b>ProblemId:</b><br />{{ProblemId}}
+                            </p>
+                            <p>
+                                <b>OuterMessage:</b><br />{{OuterMessage}}
+                            </p>
+                            <p>
+                                <b>InnerMostMessage:</b><br />{{InnerMostMessage}}
+                            </p>
+                            <p>
+                                <b>OuterType:</b><br />{{OuterType}}
+                            </p>
+                            <p>
+                                <b>Type:</b><br />{{Type}}
+                            </p>
+                            <p>
+                                <b>InnerMostType:</b><br />{{InnerMostType}}
+                            </p>
+                            <p>
+                                <b>OuterAssembly:</b><br />{{OuterAssembly}}
+                            </p>
+                            <p>
+                                <b>Assembly:</b><br />{{Assembly}}
+                            </p>
+                            <p>
+                                <b>OuterMethod:</b><br /> {{OuterMethod}}
+                            </p>
+                            <p>
+                                <b>Method:</b><br />{{Method}}
+                            </p>
+                        </div>
+                    </div>
+                </script>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div style="padding:50px">
+                <div id="jsplumb-container">
+                    <div id="@currentApp" class="app sc-launchpad-item currentApplication WebApp">
+                        <span class="icon">
+                            <img src="/temp/iconcache/launchpadicons/48x48/desktop.png" width="48" height="48" alt="Desktop">
+                        </span>
+                        <span class="sc-launchpad-text">
+                            <a href="./@Model.Application.Id?timespan=@Model.TimeSpan">@Model.Application.Title.ToUpper()</a>
+                        </span>
+                        <div class="result"></div>
+                    </div>
+
+                    @for (int row = 0; row < zones; row++)
+                    {
+                        count = 0;
+                        var applications = applicationGroups[zones - row - 1];
+                        totalApps = (double)applications.Count;
+                        double currentColwidth = 100 / totalApps;
+                        double topMod = (double)(totalApps / 2) - (double)totalApps;
+                        foreach (var item in applications)
+                        {
+                            if (!displayedApps.Contains(item.Id))
+                            {
+
+                                displayedApps.Add(item.Id);
+                                top = ((row + 1) * zoneHeight) - ((zoneHeight / totalApps) * (count));
+                                if (count % 3 == 0) { top = top + (topMod * (zoneHeight / totalApps)); }
+                                if (totalApps == 1)
+                                {
+                                    top = ((row + 1) * zoneHeight) - (zoneHeight / 2);
+                                }
+                                left = ((currentColwidth * count) + (currentColwidth / 2));
+                                count++;
+                                positionString = "top:calc(" + top + "% - " + (height / 2) + "px);left:calc(" + left + "% - " + (width / 2) + "px);";
+
+                                <div id="@(item.Id.ToString().ToUpper())" class="WebApp app sc-launchpad-item" style="@positionString">
+                                    <span class="icon">
+                                        <img src="/temp/iconcache/launchpadicons/48x48/desktop.png" width="48" height="48" alt="Desktop">
+                                    </span>
+                                    <span class="sc-launchpad-text">
+                                        <a href="./@item.Id">@item.Title</a>
+                                    </span>
+                                    <div class="result"></div>
+                                </div>
+                            }
+                            topMod += 1;
+                        }
+                    }
+
+                </div>
+                @if (Model.SummaryOfExceptions != null)
+                {
+                    <div style="width:100%" id="daily">
+                        <p><a class="btn btn-default btn-primary dailySwitch">Daily</a><a class="btn btn-default dailySwitch">Hourly</a></p>
+                        <div>
+                            <canvas id="canvas" height="180" width="600"></canvas>
+                            <div id="js-legend" class="chart-legend"></div>
+                        </div>
+                    </div>
+                    <div style="width:100%;" id="hourly">
+                        <p><a class="btn btn-default dailySwitch">Daily</a><a class="btn btn-default btn-primary dailySwitch">Hourly</a></p>
+                        <div>
+                            <canvas id="canvas2" height="180" width="600"></canvas>
+                            <div id="js-legend2" class="chart-legend"></div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <br />
+                    <h3>Problem Connecting to Database</h3>
+                    <p>@Html.Raw(Model.ErrorMessage)</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var timespan = "@Model.TimeSpan";
+        var id = "@(Model.Application.Id)";
+        var problemIdBase64 = "@(Model.ProblemIdBase64)";
+        var innerMessageBase64 = "@(Model.InnerMessageBase64)";
+        @if (Model.SummaryOfExceptions != null)
+        {
+            <text>
+            var dailyLabels = @Html.Raw(JsonConvert.SerializeObject(Model.SummaryOfExceptions.DailyLabels));
+            var dailyValues = @Html.Raw(JsonConvert.SerializeObject(Model.SummaryOfExceptions.DailyValues));
+            var hourlyLabels = @Html.Raw(JsonConvert.SerializeObject(Model.SummaryOfExceptions.Labels));
+            var hourlyValues = @Html.Raw(JsonConvert.SerializeObject(Model.SummaryOfExceptions.Values));
+            </text>
+        }
+    </script>
+    <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/jsplumb.js" charset="utf-8" type="text/javascript"></script>
+    <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/ApplicationInsightsFlowChart.js" charset="utf-8" type="text/javascript"></script>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsId) && !string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsKey))
+    {
+        <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/mustache.js" charset="utf-8" type="text/javascript"></script>
+        <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/ApplicationInsightsExceptions.js" charset="utf-8" type="text/javascript"></script>
+    }
+    @if (Model.SummaryOfExceptions != null)
+    {
+        <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/Chart.js" charset="utf-8" type="text/javascript"></script>
+        <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/ApplicationInsightsGraphs.js" charset="utf-8" type="text/javascript"></script>
+    }
+
+</body>
+</html>
