@@ -1,4 +1,6 @@
-# application-insights-sitecore-module
+# Application Insights for Sitecore Module
+
+![enter image description here](https://deanobrien.uk/wp-content/uploads/2022/11/ApplicationInsights.png)
 
 Some of the key benefits of this module are as follows:
 
@@ -25,5 +27,5 @@ Some of the key benefits of this module are as follows:
  5) Add ID and Secrets to sitecore/modules.application insights/ area
  6) Go to Dashboard => Application Insights
  
- Detailed guide can be found here:
- https://deanobrien.uk/application-insights-for-sitecore-module/
+ 
+> Detailed guide can be found here: [DeanOBrien: Application Insights Module for Sitecore](https://deanobrien.uk/application-insights-for-sitecore-module/).
