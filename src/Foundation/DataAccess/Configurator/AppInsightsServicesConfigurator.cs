@@ -1,10 +1,9 @@
-﻿using DeanOBrien.Foundation.DataAccess.ApplicationInsights;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Sitecore.DependencyInjection;
 
-namespace DeanOBrien.Foundation.DataAccess.Configurator
+namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights.Configurator
 {
-    public class ServicesConfigurator : IServicesConfigurator
+    public class AppInsightsServicesConfigurator : IServicesConfigurator
     {
         public void Configure(IServiceCollection serviceCollection)
         {

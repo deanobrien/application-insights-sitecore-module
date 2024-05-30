@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using DeanOBrien.Foundation.DataAccess.Models;
+using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Sitecore.DependencyInjection;
+using Sitecore.Diagnostics;
 
 namespace DeanOBrien.Feature.ApplicationInsights.Models
 {
@@ -91,7 +93,8 @@ namespace DeanOBrien.Feature.ApplicationInsights.Models
                     {
                         for (int x = 0; x < array.Count(); x++)
                         {
-                            if (DateTime.Parse(array[x].Date) == dateTimeFrom)
+                            Log.Info($"Attempting to parse ({array[x].Date})", this);
+                            if (DateTime.Parse(array[x].Date, CultureInfo.CreateSpecificCulture("en-GB")) == dateTimeFrom)
                             {
                                 stringList.Add(array[x].Count.ToString());
                                 found = true;

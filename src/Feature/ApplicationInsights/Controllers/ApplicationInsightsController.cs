@@ -5,7 +5,7 @@ using System.Net;
 using System.Web.Mvc;
 using Sitecore.Data;
 using DeanOBrien.Foundation.DataAccess.ApplicationInsights;
-using DeanOBrien.Foundation.DataAccess.Models;
+using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 using DeanOBrien.Feature.ApplicationInsights.Models;
 using DeanOBrien.Feature.ApplicationInsights.Extensions;
 using Sitecore.DependencyInjection;
@@ -19,12 +19,21 @@ namespace DeanOBrien.Feature.ApplicationInsights.Controllers
         private ILogStore _logStore;
         private Database _master;
         private const string ApplicationsRootID = "{3192E2CD-5C42-4EB7-8348-66E887469CD2}";
+        private string EntraClientID { get; set; }
+        private string EntraClientSecret { get; set; }
+        private string TenantID { get; set; }
 
         public ApplicationInsightsController(IAppInsightsApi appInsightsApi, ILogStore logStore)
         {
             _appInsightsApi= appInsightsApi;
             _logStore = logStore;
             _master = Sitecore.Configuration.Factory.GetDatabase("master");
+
+            var applicationInsightSettings = _master.GetItem(ApplicationsRootID);
+            EntraClientID = applicationInsightSettings.Fields["Entra Client ID"].Value;
+            EntraClientSecret = applicationInsightSettings.Fields["Entra Client Secret"].Value;
+            TenantID = applicationInsightSettings.Fields["Tenant Id"].Value;
+            _appInsightsApi.Initialize(EntraClientID, EntraClientSecret, TenantID);
         }
         public ActionResult Index(string id, string problemIdBase64 = null, string innerMostMessageBase64 = null, string timespan = "7d")
         {
@@ -51,7 +60,6 @@ namespace DeanOBrien.Feature.ApplicationInsights.Controllers
                 viewModel.InnerMessageBase64 = innerMostMessageBase64;
             }
             viewModel.Application.ApplicationInsightsId = application.Fields["ApplicationInsightsId"].Value;
-            viewModel.Application.ApplicationInsightsKey = application.Fields["ApplicationInsightsKey"].Value;
             viewModel.TimeSpan = timespan;
 
             if (!id.Contains("{")) id = "{" + id + "}";
@@ -91,25 +99,50 @@ namespace DeanOBrien.Feature.ApplicationInsights.Controllers
             if (application == null) return Json(new { ErrorMessage = "Application not found" }, JsonRequestBehavior.AllowGet);            
             else if (application.Fields["ApplicationInsightsId"] == null
                 || string.IsNullOrWhiteSpace(application.Fields["ApplicationInsightsId"].Value)
-                || application.Fields["ApplicationInsightsKey"] == null
-                || string.IsNullOrWhiteSpace(application.Fields["ApplicationInsightsKey"].Value)) return Json(new { ErrorMessage = "ApplicationInsightsId or ApplicationInsightsKey not set" }, JsonRequestBehavior.AllowGet);
+                ) return Json(new { ErrorMessage = "ApplicationInsightsId or ApplicationInsightsKey not set" }, JsonRequestBehavior.AllowGet);
             
             var appInsightsId = application.Fields["ApplicationInsightsId"].Value;
-            var appInsightsKey = application.Fields["ApplicationInsightsKey"].Value;
             var result = new List<GroupedException>();
 
             if (!string.IsNullOrWhiteSpace(innerMostMessageBase64) || !string.IsNullOrWhiteSpace(problemIdBase64))
             {
-                result = _appInsightsApi.GetGroupedExceptions(appInsightsId, appInsightsKey, problemIdBase64, innerMostMessageBase64, timespan);
+                result = _appInsightsApi.GetGroupedExceptionsV2(appInsightsId, problemIdBase64, innerMostMessageBase64, timespan);
             }
             else
             {
-                result = _appInsightsApi.GetGroupedExceptions(appInsightsId, appInsightsKey, timespan);
+                result = _appInsightsApi.GetGroupedExceptionsV2(appInsightsId, timespan);
             }
             foreach (var item in result)
             {
                 item.ApplicationId = id;
             }
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetAlerts(string id, string timespan = "2h")
+        {
+            if (id == null) return Json(new { ErrorMessage = "Application id missing" }, JsonRequestBehavior.AllowGet);
+
+            if (!id.Contains("{")) id = "{"+id+"}";
+
+            var application = _master.GetItem(id);
+
+            if (application == null) return Json(new { ErrorMessage = "Application not found" }, JsonRequestBehavior.AllowGet);
+
+            int hours = 1;
+            if (timespan.Contains("h"))
+            {
+                int.TryParse(timespan.Replace("h", ""), out hours);
+            }
+            else if (timespan.Contains("d"))
+            {
+                int days = 1;
+                int.TryParse(timespan.Replace("d", ""), out days);
+                hours = days * 24;
+            }
+
+            var result = _logStore.GetTriggeredAlerts(id, DateTime.Now.AddHours(-1*hours));
+
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 

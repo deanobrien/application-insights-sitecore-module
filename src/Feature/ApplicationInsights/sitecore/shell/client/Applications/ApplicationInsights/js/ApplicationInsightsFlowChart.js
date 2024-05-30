@@ -32,7 +32,8 @@
             var nodes = data.nodes;
             $.each(nodes, function (index, elem) {
                 jsPlumb.draggable($("#" + elem.id));
-                checkExceptionHealth(elem.id, timespan);
+                //checkExceptionHealth(elem.id, timespan);   <== Uncommment if you want health to be determined by exceptions being present
+                checkAlertHealth(elem.id, timespan);
                 addToDropdown(elem.id, elem.title);
             });
         });
@@ -48,6 +49,19 @@
             }
         });
     }
+
+    function checkAlertHealth(id, timespan) {
+        $.getJSON("/sitecore/shell/sitecore/client/applications/applicationinsights/getalerts/" + id + "?timespan=" + timespan, function (data) {
+            if (data.ErrorMessage != null) {
+                $("#" + id).addClass('warning');
+            } else if (data.length > 0) {
+                $("#" + id).addClass('error');
+            } else {
+                $("#" + id).addClass('good');
+            }
+        });
+    }
+
     function addToDropdown(id, title) {
         var html = "<option value=" + id + ">" + title + "</option>"
         $("#appDropdown").append(html);

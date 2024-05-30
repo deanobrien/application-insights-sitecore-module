@@ -21,9 +21,7 @@ namespace DeanOBrien.Feature.ApplicationInsights.Pipelines
             RouteTable.Routes.MapRoute("ApplicationInsightsDependencies", "sitecore/shell/sitecore/client/applications/applicationinsights/dependencies", new { controller = "ApplicationInsights", action = "Dependencies" });
             RouteTable.Routes.MapRoute("ApplicationInsights", "sitecore/shell/sitecore/client/applications/applicationinsights/{id}", new { controller = "ApplicationInsights", action = "Index" });
             RouteTable.Routes.MapRoute("ApplicationInsightsGroupedExceptions", "sitecore/shell/sitecore/client/applications/applicationinsights/groupedExceptions/{id}", new { controller = "ApplicationInsights", action = "GroupedExceptions" });
+            RouteTable.Routes.MapRoute("GetAlerts", "sitecore/shell/sitecore/client/applications/applicationinsights/GetAlerts/{id}", new { controller = "ApplicationInsights", action = "GetAlerts" });
         }
-
-
-
     }
 }

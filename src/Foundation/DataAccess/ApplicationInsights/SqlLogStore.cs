@@ -1,4 +1,4 @@
-﻿using DeanOBrien.Foundation.DataAccess.Models;
+﻿using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 using System;
 using System.Configuration;
 using System.Collections.Generic;
@@ -10,6 +10,98 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
 {
     public class SqlLogStore : ILogStore
     {
+        public void AddTriggeredAlert(string applicationId, string alertId, string title, DateTime dateTriggered)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ApplicationInsights"].ConnectionString))
+                {
+                    using (var cmd = new SqlCommand("dbo.InsertTriggeredAlert", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        var parameterApplicationId = new SqlParameter("@ApplicationId", SqlDbType.VarChar, 50);
+                        parameterApplicationId.Value = applicationId;
+                        cmd.Parameters.Add(parameterApplicationId);
+
+                        var parameterAlertId = new SqlParameter("@AlertId", SqlDbType.VarChar, 50);
+                        parameterAlertId.Value = alertId;
+                        cmd.Parameters.Add(parameterAlertId);
+
+                        var parameterTitle = new SqlParameter("@Title", SqlDbType.VarChar, 50);
+                        parameterTitle.Value = title;
+                        cmd.Parameters.Add(parameterTitle);
+
+                        string format = "yyyy-MM-dd HH:mm:ss";    // modify the format depending upon input required in the column in database
+
+                        var parameterDateTriggered = new SqlParameter("@DateTriggered", SqlDbType.DateTime);
+                        parameterDateTriggered.Value = dateTriggered.ToString(format);
+                        cmd.Parameters.Add(parameterDateTriggered);
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        conn.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public List<TriggeredAlert> GetTriggeredAlerts(string applicationId, DateTime dateFrom)
+        {
+            var triggeredAlerts = new List<TriggeredAlert>();
+
+            try
+            {
+                using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ApplicationInsights"].ConnectionString))
+                {
+                    using (var cmd = new SqlCommand("dbo.FindTriggeredAlertsById", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        var parameterApplicationId = new SqlParameter("@ApplicationId", SqlDbType.VarChar, 50);
+                        parameterApplicationId.Value = applicationId;
+                        cmd.Parameters.Add(parameterApplicationId);
+
+                        string format = "yyyy-MM-dd HH:mm:ss";
+
+                        var parameterDateFrom = new SqlParameter("@DateFrom", SqlDbType.DateTime);
+                        parameterDateFrom.Value = dateFrom.ToString(format);
+                        cmd.Parameters.Add(parameterDateFrom);
+
+                        conn.Open();
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    var triggeredAlert = new TriggeredAlert();
+                                    triggeredAlert.Id = reader.GetInt32(0);
+                                    triggeredAlert.ApplicationId = reader.GetString(1);
+                                    triggeredAlert.AlertId = reader.GetString(2);
+                                    triggeredAlert.Title = reader.GetString(3);
+                                    triggeredAlert.DateTriggered = reader.GetDateTime(4);
+                                    triggeredAlert.DayTriggered = triggeredAlert.DateTriggered.Day;
+                                    triggeredAlert.MonthTriggered = triggeredAlert.DateTriggered.ToString("MMMM");
+                                    triggeredAlerts.Add(triggeredAlert);
+                                }
+                            }
+                        }
+                        conn.Close();
+                    }
+                }
+                return triggeredAlerts;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
         public Application GetApplication(string applicationId)
         {
             var application = new Application();
@@ -71,7 +163,7 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
                         cmd.Parameters.Add(parameterApplicationId);
 
                         var parameterTitle = new SqlParameter("@Title", SqlDbType.VarChar, 50);
-                        parameterTitle.Value = applicationId;
+                        parameterTitle.Value = title;
                         cmd.Parameters.Add(parameterTitle);
 
                         string format = "yyyy-MM-dd HH:mm:ss";    // modify the format depending upon input required in the column in database
@@ -335,7 +427,7 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
                         cmd.CommandType = CommandType.StoredProcedure;
 
                         var parameterAppInsightType = new SqlParameter("@AppInsightType", SqlDbType.Int, 2);
-                        parameterAppInsightType.Value = appInsightType;
+                        parameterAppInsightType.Value = (int)appInsightType;
                         cmd.Parameters.Add(parameterAppInsightType);
 
                         var parameterApplicationId = new SqlParameter("@ApplicationId", SqlDbType.VarChar, 50);
@@ -377,14 +469,14 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
                         cmd.CommandType = CommandType.StoredProcedure;
 
                         var parameterAppInsightType = new SqlParameter("@AppInsightType", SqlDbType.Int, 2);
-                        parameterAppInsightType.Value = appInsightType;
+                        parameterAppInsightType.Value = (int)appInsightType;
                         cmd.Parameters.Add(parameterAppInsightType);
 
                         var parameterApplicationId = new SqlParameter("@ApplicationId", SqlDbType.VarChar, 50);
                         parameterApplicationId.Value = applicationId;
                         cmd.Parameters.Add(parameterApplicationId);
 
-                        var parameterProblemIdBase64 = new SqlParameter("@ProblemIdBase64", SqlDbType.VarChar, 50);
+                        var parameterProblemIdBase64 = new SqlParameter("@ProblemIdBase64", SqlDbType.VarChar, 200);
                         parameterProblemIdBase64.Value = problemIdBase64;
                         cmd.Parameters.Add(parameterProblemIdBase64);
 

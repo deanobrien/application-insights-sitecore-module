@@ -7,8 +7,8 @@
     <ProjectGuid>{710F1825-9D39-41B2-896C-3AB9F4EDB9A9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DeanOBrien.Foundation.DataAccess</RootNamespace>
-    <AssemblyName>DeanOBrien.Foundation.DataAccess</AssemblyName>
+    <RootNamespace>DeanOBrien.Foundation.DataAccess.ApplicationInsights</RootNamespace>
+    <AssemblyName>DeanOBrien.Foundation.DataAccess.ApplicationInsights</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -237,11 +237,14 @@
     <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\AppInsightType.cs" />
     <Compile Include="Models\Application.cs" />
+    <Compile Include="Models\BearerResponse.cs" />
     <Compile Include="Models\Column.cs" />
+    <Compile Include="Models\CustomEventSummary.cs" />
     <Compile Include="Models\GroupedException.cs" />
     <Compile Include="Models\Table.cs" />
+    <Compile Include="Models\TriggeredAlert.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Configurator\ServicesConfigurator.cs" />
+    <Compile Include="Configurator\AppInsightsServicesConfigurator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

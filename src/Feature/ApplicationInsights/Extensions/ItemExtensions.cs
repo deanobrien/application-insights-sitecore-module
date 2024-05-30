@@ -56,5 +56,47 @@ namespace DeanOBrien.Feature.ApplicationInsights.Extensions
 
             return id;
         }
+        public static bool ImplementsTemplate(this Item item, string templateName)
+        {
+            if (string.IsNullOrEmpty(templateName))
+                return true;
+
+            bool result = false;
+
+            if (item != null)
+            {
+                if (item.TemplateName == templateName)
+                {
+                    result = true;
+                }
+                else
+                {
+                    var template = Sitecore.Data.Managers.TemplateManager.GetTemplate(item);
+
+                    if (template != null)
+                    {
+                        var baseTemplates = template.GetBaseTemplates();
+
+                        if (baseTemplates != null)
+                            result = baseTemplates.Any(x => x.Name == templateName);
+                    }
+                }
+            }
+
+            return result;
+        }
+        public static Item GetLinkedItem(this Item item, string fieldName)
+        {
+            if (item.Fields[fieldName] == null) return null;
+
+            var itemId = item[fieldName];
+
+            if (!string.IsNullOrWhiteSpace(itemId))
+            {
+                return item.Database.GetItem(itemId);
+            }
+
+            return null;
+        }
     }
 }

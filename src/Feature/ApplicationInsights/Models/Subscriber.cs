@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models
+namespace DeanOBrien.Feature.ApplicationInsights.Models
 {
-    public enum AppInsightType
+    public class Subscriber
     {
-        Hourly,
-        Daily,
+        public string Email { get; set; }
     }
 }

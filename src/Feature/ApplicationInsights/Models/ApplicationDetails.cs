@@ -1,4 +1,4 @@
-﻿using DeanOBrien.Foundation.DataAccess.Models;
+﻿using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 using System.Collections.Generic;
 
 namespace DeanOBrien.Feature.ApplicationInsights.Models

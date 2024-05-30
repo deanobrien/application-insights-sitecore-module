@@ -1,7 +1,7 @@
 ﻿@model DeanOBrien.Feature.ApplicationInsights.Models.ApplicationDetails
 @using Newtonsoft.Json
 
-@using DeanOBrien.Foundation.DataAccess.Models
+@using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models
 <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/jquery-1.12.4.min.js" charset="utf-8" type="text/javascript"></script>
 <link rel="shortcut icon" href="/sitecore/images/favicon.ico" />
 <link href="/sitecore/shell/client/Speak/Assets/css/speak-default-theme.css" rel="stylesheet" type="text/css" />
@@ -138,18 +138,38 @@
                     <option value="40e38b9f-004b-4da2-a41e-a15e4c2326ca">Content Management</option>
                 </select>
             </div>
+            <div id="triggeredAlerts">
+                <h3>Alerts</h3>
 
+                <img src="~/Common/images/giphy.gif" class="loader">
+                <p class="noResult" style="display:none">None found</p>
+
+            </div>
             <div id="groupedExceptions">
                 <h3>Grouped Exceptions</h3>
-                @if (!string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsId) && !string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsKey))
+                @if (!string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsId))
                 {
                     <img src="~/Common/images/giphy.gif" class="loader">
                     <p class="noResult" style="display:none">None found</p>
                 }
                 else
                 {
-                    <p>Please set <b>ApplicationInsightsId</b> and <b>ApplicationInsightsKey</b> for this application to see data.</p>
+                    <p>Please set <b>ApplicationInsightsId</b> for this application to see data.</p>
                 }
+
+                <script id="triggeredAlertTpl" type="text/template">
+                    <div class="sc-launchpad-item">
+                        <span class='icon'>
+                            <span class="count">{{DayTriggered}}</span><br>
+                            {{MonthTriggered}}
+
+                        </span>
+                        <span>
+                            <b>{{Title}}</a><br />
+                        </span>
+                    </div>
+                </script>
+
                 <script id="groupedExceptionTpl" type="text/template">
                     <div class="sc-launchpad-item">
                         <span class='icon'>
@@ -312,7 +332,7 @@
     <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/jsplumb.js" charset="utf-8" type="text/javascript"></script>
     <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/ApplicationInsightsFlowChart.js" charset="utf-8" type="text/javascript"></script>
 
-    @if (!string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsId) && !string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsKey))
+    @if (!string.IsNullOrWhiteSpace(Model.Application.ApplicationInsightsId))
     {
         <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/mustache.js" charset="utf-8" type="text/javascript"></script>
         <script src="/sitecore/shell/client/Applications/ApplicationInsights/js/ApplicationInsightsExceptions.js" charset="utf-8" type="text/javascript"></script>

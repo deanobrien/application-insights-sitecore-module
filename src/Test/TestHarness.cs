@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 using DeanOBrien.Foundation.DataAccess.ApplicationInsights;
-using DeanOBrien.Foundation.DataAccess.Models;
+using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 
 namespace DeanOBrien.ApplicationInsights.Test
 {
@@ -11,10 +11,21 @@ namespace DeanOBrien.ApplicationInsights.Test
         private SqlLogStore _sqlStore;
         private AppInsightsApi _api;
 
+        // This is Application (client) ID from App Registration
+        private static string entraClientID = "xxx";
+
+        // This is Application (client) Secret from App Registration
+        private static string entraClientSecret = "xxx";
+
+        private static string timespan = "2h";
+
+        private static string tenantId = "xxx";
+
         public TestHarness()
         {
             _sqlStore = new SqlLogStore();
             _api = new AppInsightsApi();
+            _api.Initialize(entraClientID, entraClientSecret, tenantId);
         }
 
 
@@ -201,7 +212,7 @@ namespace DeanOBrien.ApplicationInsights.Test
             var application = FindApplication();
             if (application == null) return null;
 
-            var logs = _api.GetGroupedExceptions(application.ApplicationInsightsId, application.ApplicationInsightsKey, "1h");
+            var logs = _api.GetGroupedExceptionsV2(application.ApplicationInsightsId, "1h");
             foreach (var log in logs)
             {
                 _sqlStore.AddGroupedException(application.Id.ToString(), log, AppInsightType.Hourly);
@@ -221,7 +232,7 @@ namespace DeanOBrien.ApplicationInsights.Test
 
             var logFromStore = _sqlStore.GetGroupedException(Convert.ToInt32(logId));
 
-            var logs = _api.GetGroupedExceptions(application.ApplicationInsightsId, application.ApplicationInsightsKey, logFromStore.ProblemIdBase64, null, "24h");
+            var logs = _api.GetGroupedExceptionsV2(application.ApplicationInsightsId, logFromStore.ProblemIdBase64, null, "24h");
             foreach (var log in logs)
             {
                 PrintApplicationInsightLog(log);
@@ -241,7 +252,7 @@ namespace DeanOBrien.ApplicationInsights.Test
             var logFromStore = _sqlStore.GetGroupedException(Convert.ToInt32(logId));
             string testInnerMessage = "Multiple controls with the same ID 'FContent70EDF5AF9D454B61859BBC0566241FEF' were found. FindControl requires that controls have unique IDs.";
 
-            var logs = _api.GetGroupedExceptions(application.ApplicationInsightsId, application.ApplicationInsightsKey, null, Base64Encode(testInnerMessage), "24h");
+            var logs = _api.GetGroupedExceptionsV2(application.ApplicationInsightsId, null, Base64Encode(testInnerMessage), "24h");
             foreach (var log in logs)
             {
                 PrintApplicationInsightLog(log);

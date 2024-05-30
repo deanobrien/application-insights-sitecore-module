@@ -1,4 +1,4 @@
-﻿using DeanOBrien.Foundation.DataAccess.Models;
+﻿using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 using System;
 using System.Collections.Generic;
 
@@ -6,6 +6,8 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
 {
     public interface ILogStore
     {
+        void AddTriggeredAlert(string applicationId, string alertId, string title, DateTime dateTriggered);
+        List<TriggeredAlert> GetTriggeredAlerts(string applicationId, DateTime dateFrom);
         Application GetApplication(string applicationId);
         Application AddApplication(string applicationId, string title, string applicationInsightsId, string applicationInsightsKey);
         void SetNextHourly(string applicationId, DateTime nextDaily);
