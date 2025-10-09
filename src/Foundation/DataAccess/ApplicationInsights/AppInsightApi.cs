@@ -102,6 +102,20 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
             var apiResponse = CallInsightsAPIV2(applicationInsightsId, query);
             return DeserialiseResponse(apiResponse, true);
         }
+
+        //[OutputCache(Duration = 240, VaryByParam = "applicationInsightsId,problemIdBase64,innerMostMessageBase64,timespan")]
+        public List<SingleException> GetSingleException(string applicationInsightsId, string problemIdBase64, string innerMostMessageBase64, string timespan)
+        {
+            if (string.IsNullOrWhiteSpace(applicationInsightsId)) return null;
+
+
+            string query = BuildDetailedQuery2(problemIdBase64, innerMostMessageBase64, timespan);
+            Log.Info($"AppInsightsApi: { query }", this);
+            var apiResponse = CallInsightsAPIV2(applicationInsightsId, query);
+            var x =  DeserialiseResponse2(apiResponse, true);
+            return x;
+        }
+
         [OutputCache(Duration = 240, VaryByParam = "applicationInsightsId,timespan")]
         public List<CustomEventSummary> GetCustomEventsV2(string applicationInsightsId, string customEvent, string timespan)
         {
@@ -144,13 +158,42 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
             }
             return $"/query?query={HttpUtility.UrlPathEncode(newQuery)}";
         }
+        private static string BuildDetailedQuery2(string problemIdBase64, string innerMostMessageBase64, string timespan)
+        {
+            string newQuery = string.Empty;
 
+            // Issue #1 => on few occasions when adding innermostMessage it fails the api call (i.e. when /" in message) => workaround: calling without then filtering on innermostMessage
+            // if ((!string.IsNullOrWhiteSpace(problemIdBase64)) && (!string.IsNullOrWhiteSpace(innerMostMessageBase64))){ newQuery = $"exceptions | where timestamp > ago({timespan}) | where problemId == '{DecodeBase64(problemIdBase64)}' and innermostMessage == '{DecodeBase64(innerMostMessageBase64)}' | summarize number = count(problemId) by problemId, outerType, type, innermostType, outerAssembly, assembly, outerMethod, method, outerMessage, innermostMessage | order by number";} else
+
+            if (!string.IsNullOrWhiteSpace(problemIdBase64) && !string.IsNullOrWhiteSpace(innerMostMessageBase64)) 
+            {
+                newQuery = $"exceptions | where timestamp > ago({timespan}) | where problemId == '{DecodeBase64(problemIdBase64)}' | where innermostMessage == '{DecodeBase64(innerMostMessageBase64)}'";
+            }
+            else if (!string.IsNullOrWhiteSpace(problemIdBase64))
+            {
+                newQuery = $"exceptions | where timestamp > ago({timespan}) | where problemId == '{DecodeBase64(problemIdBase64)}'";
+            }
+            else if (!string.IsNullOrWhiteSpace(innerMostMessageBase64))
+            {
+                newQuery = $"exceptions | where timestamp > ago({timespan}) | where innermostMessage == '{DecodeBase64(innerMostMessageBase64)}'";
+            }
+            return $"/query?query={HttpUtility.UrlPathEncode(newQuery)}";
+        }
         private static List<GroupedException> DeserialiseResponse(ApiResponse apiResponse, bool detailed = false)
         {
             var result = new List<GroupedException>();
             if (apiResponse.tables.Any() && apiResponse.tables[0] != null && apiResponse.tables[0].rows != null && apiResponse.tables[0].rows.Count() > 0)
             {
                 apiResponse.tables[0].rows.ToList().ForEach(x => result.Add(new GroupedException(JsonConvert.DeserializeObject<object[]>(x.ToString()), detailed)));
+            }
+            return result;
+        }
+        private static List<SingleException> DeserialiseResponse2(ApiResponse apiResponse, bool detailed = false)
+        {
+            var result = new List<SingleException>();
+            if (apiResponse.tables.Any() && apiResponse.tables[0] != null && apiResponse.tables[0].rows != null && apiResponse.tables[0].rows.Count() > 0)
+            {
+                apiResponse.tables[0].rows.ToList().ForEach(x => result.Add(new SingleException(JsonConvert.DeserializeObject<object[]>(x.ToString()), detailed)));
             }
             return result;
         }

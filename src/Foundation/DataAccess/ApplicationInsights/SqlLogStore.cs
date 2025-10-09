@@ -452,11 +452,15 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
             return result;
         }
 
+
         public List<GroupedException> GetGroupedExceptions(string applicationId, string problemIdBase64 = null, AppInsightType appInsightType = AppInsightType.Daily, string timespan="7d")
         {
+
+
+
             int hours = ConvertTimespanToHours(timespan);
 
-            if (problemIdBase64 == null) return GetGroupedExceptions(applicationId, appInsightType, timespan);
+            if (string.IsNullOrWhiteSpace(problemIdBase64)) return GetGroupedExceptions(applicationId, appInsightType, timespan);
 
             var result = new List<GroupedException>();
 

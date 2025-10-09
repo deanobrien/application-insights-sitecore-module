@@ -14,6 +14,7 @@ namespace DeanOBrien.Feature.ApplicationInsights.Models
         ScheduledTaskInactivity,
         CustomEvent,
         WebpageDown,
-        ServiceBusQueueExceeds
+        ServiceBusQueueExceeds,
+        AIAlert
     }
 }

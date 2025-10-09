@@ -32,10 +32,12 @@
             var nodes = data.nodes;
             $.each(nodes, function (index, elem) {
                 jsPlumb.draggable($("#" + elem.id));
-                //checkExceptionHealth(elem.id, timespan);   <== Uncommment if you want health to be determined by exceptions being present
-                checkAlertHealth(elem.id, timespan);
+                checkExceptionHealth(elem.id, timespan);  // <== Uncommment if you want health to be determined by exceptions being present
+                //checkAlertHealth(elem.id, timespan);    // <== Uncommment if you want health to be determined by generated alert being present
                 addToDropdown(elem.id, elem.title);
             });
+        }).then(function () {
+            CallSummaryAfterPageLoad();
         });
     }
     function checkExceptionHealth(id, timespan) {

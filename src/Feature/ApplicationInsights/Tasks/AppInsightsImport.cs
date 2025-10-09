@@ -61,63 +61,17 @@ namespace DeanOBrien.Feature.ApplicationInsights.Tasks
                 { 
                     foreach (var alert in alerts)
                     {
-                        if (AlertsHelper.CheckIfAlertShouldBeTriggered(groupedExceptionsInLastHour, alert, application))
+                        var alertCheck = AlertsHelper.CheckIfAlertShouldBeTriggered(groupedExceptionsInLastHour, alert, application);
+                        if (alertCheck.Item1)
                         {
                             AlertsHelper.SetNextRun(alert.Item, DateTime.Now.AddMinutes((int)(alert.DelayBetweenAlerts ?? 1)));
-                            AlertsHelper.NotifySubscribers(alert);
+                            AlertsHelper.NotifySubscribers(alert, alertCheck.Item2);
                             AlertsHelper.LogTriggeredAlert(alert);
 
                             continue;
 
                         }
                         if (alert.NextRun <= DateTime.Now) AlertsHelper.SetNextRun(alert.Item, DateTime.Now);
-
-
-
-                        //if (alert.AlertType == AlertType.ExceptionContainsString)
-                        //{
-                        //    foreach (var groupedExceptionInLastHour in groupedExceptionsInLastHour)
-                        //    {
-                        //        if (AlertsHelper.CheckIfAlertShouldBeTriggered(groupedExceptionInLastHour, null, null, alert, application))
-                        //        {
-                        //            AlertsHelper.SetNextRun(alert.Item, DateTime.Now.AddMinutes((int)(alert.DelayBetweenAlerts ?? 1)));
-                        //            AlertsHelper.NotifySubscribers(alert, groupedExceptionInLastHour);
-                        //            break;
-                        //        }
-                        //        AlertsHelper.SetNextRun(alert.Item, DateTime.Now);
-                        //    }
-                        //}
-                        //else if (alert.AlertType == AlertType.ExceptionSpike)
-                        //{
-                        //    if (AlertsHelper.CheckIfAlertShouldBeTriggered(null, groupedExceptionsInLastHour, null, alert, application))
-                        //    {
-                        //        AlertsHelper.SetNextRun(alert.Item, DateTime.Now.AddMinutes((int)(alert.DelayBetweenAlerts ?? 1)));
-                        //        AlertsHelper.NotifySubscribers(alert, null);
-                        //        break;
-                        //    }
-                        //    AlertsHelper.SetNextRun(alert.Item, DateTime.Now);
-                        //}
-                        //else if (alert.AlertType == AlertType.CustomEvent)
-                        //{
-                        //    var customEvents = _appInsightsApi.GetCustomEventsV2(application.ApplicationInsightsId,alert.CustomEvent,$"{alert.HoursSinceCustomEvent}h");
-                        //    if (AlertsHelper.CheckIfAlertShouldBeTriggered(null, null, customEvents, alert, application))
-                        //    {
-                        //        AlertsHelper.SetNextRun(alert.Item, DateTime.Now.AddMinutes((int)(alert.DelayBetweenAlerts ?? 1)));
-                        //        AlertsHelper.NotifySubscribers(alert, null);
-                        //        break;
-                        //    }
-                        //    AlertsHelper.SetNextRun(alert.Item, DateTime.Now);
-                        //}
-                        //else
-                        //{
-                        //    if (AlertsHelper.CheckIfAlertShouldBeTriggered(null, null, null, alert, application))
-                        //    {
-                        //        AlertsHelper.SetNextRun(alert.Item, DateTime.Now.AddMinutes((int)(alert.DelayBetweenAlerts ?? 1)));
-                        //        AlertsHelper.NotifySubscribers(alert, null);
-                        //        break;
-                        //    }
-                        //    AlertsHelper.SetNextRun(alert.Item, DateTime.Now);
-                        //}
                     }
                 }
 

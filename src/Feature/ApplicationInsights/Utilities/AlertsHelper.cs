@@ -2,9 +2,11 @@
 using DeanOBrien.Feature.ApplicationInsights.Extensions;
 using DeanOBrien.Feature.ApplicationInsights.Models;
 using DeanOBrien.Foundation.DataAccess.ApplicationInsights;
+using DeanOBrien.Foundation.DataAccess.ApplicationInsights.ApplicationInsights;
 using DeanOBrien.Foundation.DataAccess.ApplicationInsights.Models;
 using ICSharpCode.SharpZipLib.Checksum;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Sitecore;
 using Sitecore.Data;
 using Sitecore.Data.Items;
@@ -20,6 +22,7 @@ using System.Net.Mail;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Mvc;
 using static Sitecore.Configuration.Settings;
 
 namespace DeanOBrien.Feature.ApplicationInsights.Utilities
@@ -28,6 +31,7 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
     {
         private static IAppInsightsApi _appInsightsApi;
         private static ILogStore _logStore;
+        private static IGenAIService _genAIService;
 
         private static string EntraClientID { get; set; }
 
@@ -41,6 +45,8 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
             Log.Info("AlertsHelper() start", "AlertsHelper");
             _appInsightsApi = ServiceLocator.ServiceProvider.GetService<IAppInsightsApi>();
             _logStore = ServiceLocator.ServiceProvider.GetService<ILogStore>();
+            _genAIService = ServiceLocator.ServiceProvider.GetService<IGenAIService>();
+
 
             _master = Sitecore.Configuration.Factory.GetDatabase("master");
 
@@ -112,6 +118,10 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
                         alert.AlertType = AlertType.WebpageDown;
                         alert.Url = alertItem.Fields["Url"]?.Value;
                     }
+                    if (alertItem.TemplateName == "AI Alert")
+                    {
+                        alert.AlertType = AlertType.AIAlert;
+                    }
                     if (alertItem.TemplateName == "Service Bus Queue Exceeds")
                     {
                         if (alertItem.Fields["Service Bus Queue"] == null) continue;
@@ -133,10 +143,10 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
             return response;
         }
 
-        internal static bool CheckIfAlertShouldBeTriggered(List<GroupedException> exceptions, Alert alert, Application application)
+        internal static Tuple<bool,string> CheckIfAlertShouldBeTriggered(List<GroupedException> exceptions, Alert alert, Application application)
         {
-            if (alert.NextRun > DateTime.Now) return false;
-            if (!alert.Enabled) return false;
+            if (alert.NextRun > DateTime.Now) return new Tuple<bool, string>(false, "");
+            if (!alert.Enabled) return new Tuple<bool, string>(false, "");
             if (alert.AlertType == AlertType.ExceptionContainsString)
             {
                 foreach (var groupedExceptionInLastHour in exceptions)
@@ -148,7 +158,7 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
                     || (groupedExceptionInLastHour.InnerMostType != null && groupedExceptionInLastHour.InnerMostType.Contains(alert.ExceptionString))
                     || (groupedExceptionInLastHour.OuterType != null && groupedExceptionInLastHour.OuterType.Contains(alert.ExceptionString))
                     || (groupedExceptionInLastHour.OuterAssembly != null && groupedExceptionInLastHour.OuterAssembly.Contains(alert.ExceptionString)))
-                    && groupedExceptionInLastHour.Count >= alert.Threshold) return true;
+                    && groupedExceptionInLastHour.Count >= alert.Threshold) return new Tuple<bool, string>(true,"");
                 }
             }
             else if (alert.AlertType == AlertType.ExceptionSpike)
@@ -160,55 +170,61 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
                 var hourlyLogs = logStore.GetGroupedExceptions(applicatonID, null, AppInsightType.Hourly, "7d");
                 var summaryOfExceptions = new SummaryOfExceptions(applicatonID, "7d", dailyLogs, hourlyLogs);
                 var highestNumberExceptionsInHour = summaryOfExceptions.HourlySummary.Max(x => x.Count);
-                if (alert.PercentageThreshold == 0) return false;
+                if (alert.PercentageThreshold == 0) return new Tuple<bool, string>(false, "");
 
                 double limit = highestNumberExceptionsInHour + (highestNumberExceptionsInHour * (double)alert.PercentageThreshold / 100);
-                if (totalExceptionsInLastHour > highestNumberExceptionsInHour) return true;
+                if (totalExceptionsInLastHour > highestNumberExceptionsInHour) return new Tuple<bool, string>(true, "");
             }
             else if (alert.AlertType == AlertType.CustomEvent)
             {
-                if (alert.HoursSinceCustomEvent == 0) return false;
-                if (string.IsNullOrWhiteSpace(alert.CustomEvent)) return false;
+                if (alert.HoursSinceCustomEvent == 0) return new Tuple<bool, string>(false, "");
+                if (string.IsNullOrWhiteSpace(alert.CustomEvent)) return new Tuple<bool, string>(false, "");
 
                 var customEvents = _appInsightsApi.GetCustomEventsV2(application.ApplicationInsightsId, alert.CustomEvent, $"{alert.HoursSinceCustomEvent}h");
-                if ((customEvents.Count > 0 && !alert.EventDesired) || (customEvents.Count == 0 && alert.EventDesired)) return true;
-                return false;
+                if ((customEvents.Count > 0 && !alert.EventDesired) || (customEvents.Count == 0 && alert.EventDesired)) return new Tuple<bool, string>(true, "");
+                return new Tuple<bool, string>(false, "");
             }
             else if (alert.AlertType == AlertType.CronTaskInactivity)
             {
-                if (alert.LinkedItem == null) return false;
-                if (alert.InactivityThresholdInMins <= 0) return false;
-                if (alert.LinkedItem.Fields["LastRunUTC"] == null || string.IsNullOrWhiteSpace(alert.LinkedItem.Fields["LastRunUTC"]?.Value)) return true;
+                if (alert.LinkedItem == null) return new Tuple<bool, string>(false, "");
+                if (alert.InactivityThresholdInMins <= 0) return new Tuple<bool, string>(false, "");
+                if (alert.LinkedItem.Fields["LastRunUTC"] == null || string.IsNullOrWhiteSpace(alert.LinkedItem.Fields["LastRunUTC"]?.Value)) return new Tuple<bool, string>(true, "");
 
                 var lastRun = alert.LinkedItem.Fields["LastRunUTC"]?.Value;
                 var lastRunAsDateTime = DateUtil.IsoDateToDateTime(lastRun);
 
-                if (lastRunAsDateTime < DateTime.Now.AddMinutes((double)(-1 * alert.InactivityThresholdInMins))) return true;
-                return false;
+                if (lastRunAsDateTime < DateTime.Now.AddMinutes((double)(-1 * alert.InactivityThresholdInMins))) return new Tuple<bool, string>(true, "");
+                return new Tuple<bool, string>(false, "");
             }
             else if (alert.AlertType == AlertType.ScheduledTaskInactivity)
             {
-                if (alert.LinkedItem == null) return false;
-                if (alert.InactivityThresholdInMins <= 0) return false;
-                if (alert.LinkedItem.Fields["Last run"] == null || string.IsNullOrWhiteSpace(alert.LinkedItem.Fields["Last run"]?.Value)) return true;
+                if (alert.LinkedItem == null) return new Tuple<bool, string>(false, "");
+                if (alert.InactivityThresholdInMins <= 0) return new Tuple<bool, string>(false, "");
+                if (alert.LinkedItem.Fields["Last run"] == null || string.IsNullOrWhiteSpace(alert.LinkedItem.Fields["Last run"]?.Value)) return new Tuple<bool, string>(true, "");
 
                 var lastRun = alert.LinkedItem.Fields["Last run"]?.Value;
                 var lastRunAsDateTime = DateUtil.IsoDateToDateTime(lastRun);
 
-                if (lastRunAsDateTime < DateTime.Now.AddMinutes((double)(-1 * alert.InactivityThresholdInMins))) return true;
-                return false;
+                if (lastRunAsDateTime < DateTime.Now.AddMinutes((double)(-1 * alert.InactivityThresholdInMins))) return new Tuple<bool, string>(true, "");
+                return new Tuple<bool, string>(false, "");
             }
             else if (alert.AlertType == AlertType.WebpageDown)
             {
-                if (string.IsNullOrWhiteSpace(alert.Url)) return false;
-                if (GetHeaders(alert.Url) != HttpStatusCode.OK) return true;
-                return false;
+                if (string.IsNullOrWhiteSpace(alert.Url)) return new Tuple<bool, string>(false, "");
+                if (GetHeaders(alert.Url) != HttpStatusCode.OK) return new Tuple<bool, string>(true, "");
+                return new Tuple<bool, string>(false, "");
             }
             else if (alert.AlertType == AlertType.ServiceBusQueueExceeds)
             {
                 var client = new ServiceBusAdministrationClient(alert.ServiceBusConnection);
                 var queue = client.GetQueueRuntimePropertiesAsync(alert.ServiceBusQueue);
-                if ((int)queue.Result.Value.TotalMessageCount > alert.ServiceBusQueueLimit) return true;
+                if ((int)queue.Result.Value.TotalMessageCount > alert.ServiceBusQueueLimit) return new Tuple<bool, string>(true, "");
+            }
+            else if (alert.AlertType == AlertType.AIAlert)
+            {
+                var healthCheck = GetHealthCheck(application.Id.ToString(), "30d");
+                if (healthCheck.Contains("APPLICATIONHEALTHY")) return new Tuple<bool, string>(false, "");
+                return new Tuple<bool, string>(true, healthCheck);
             }
 
             if (alert.AlertType == AlertType.ExceptionContainsString)
@@ -264,12 +280,12 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
                 //if (GetHeaders(alert.Url) != HttpStatusCode.OK) return true;
                 //return false;
             }
-            return false;
+            return new Tuple<bool, string>(false, "");
         }
 
-        internal static void NotifySubscribers(Alert alert)
+        internal static void NotifySubscribers(Alert alert, string additionalMessage="")
         {
-            string message = GetFriendlyMessage(alert);
+            string message = GetFriendlyMessage(alert, additionalMessage);
             if (alert.Subscribers != null && alert.Subscribers.Count() > 0)
             {
                 foreach (var subscriber in alert.Subscribers)
@@ -279,7 +295,7 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
             }
         }
 
-        private static string GetFriendlyMessage(Alert alert)
+        private static string GetFriendlyMessage(Alert alert, string additionalMessage="")
         {
             var message = string.Empty;
 
@@ -289,6 +305,8 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
             if (alert.AlertType == AlertType.CustomEvent && alert.EventDesired) message = $"The alert '{alert.Title}' has been triggered because a custom event was not found containing '{alert.CustomEvent}' in the last {alert.HoursSinceCustomEvent}.";
             if (alert.AlertType == AlertType.CustomEvent && !alert.EventDesired) message = $"The alert '{alert.Title}' has been triggered because a custom event was found containing '{alert.CustomEvent}' in the last {alert.HoursSinceCustomEvent}.";
             if (alert.AlertType == AlertType.WebpageDown) message = $"The alert '{alert.Title}' has been triggered, because the url'{alert.Url}' did not return a 200 status.";
+            if (alert.AlertType == AlertType.AIAlert) message = $"The alert '{alert.Title}' has been triggered. \r\n {additionalMessage}";
+
             return message;
         }
 
@@ -348,7 +366,76 @@ namespace DeanOBrien.Feature.ApplicationInsights.Utilities
             }
             return HttpStatusCode.BadRequest;
         }
+        private static string GetHealthCheck(string id, string timespan = "30d")
+        {
+            string error = string.Empty;
+            if (id == null)
+            {
+                return null;
+            }
+            var application = _master.GetItem(id);
+            if (application == null)
+            {
+                var applications = _master.GetItem(ApplicationsRootID);
+                application = applications.GetChildren().Where(x => x.Fields["Title"].Value == "CM").FirstOrDefault();
+                if (application == null) application = applications.GetChildren().FirstOrDefault();
+                if (application == null) return null;
+            }
 
+            var appInsightsId = application.Fields["ApplicationInsightsId"].Value;
+            var applicationId = application.ID.ToString();
+            if (!id.Contains("{")) id = "{" + id + "}";
+
+            try
+            {
+                List<GroupedException> combinedHourlyLogs = GetExceptionsFromApiAndDB(timespan, applicationId, appInsightsId);
+                int minsSince = GetTimeSinceLastHourly(applicationId);
+
+                var viewModel = new SummaryForAIOverview(id, timespan, combinedHourlyLogs);
+                viewModel.Application = new Application() { Id = application.ID.ToGuid(), Title = application.Fields["Title"].Value };
+                viewModel.Application.ApplicationInsightsId = application.Fields["ApplicationInsightsId"].Value;
+
+                var exceptionsInTimeSpanAsJson = JsonConvert.SerializeObject(viewModel.ExceptionsInTimeSpan);
+
+                var prompt = new List<Tuple<string, string>>() {
+                        new Tuple<string,string>("System","You are a IT assistant, with in depth knowledge of C# programming language."),
+                        new Tuple<string,string>("User",$"Please consider the following JSON enclosed by *** which represents the exceptions found in an application over the last {viewModel.TimeSpan} hours and {minsSince} minutes. Using the provided data, please advise if you see anything out of the unusual in the last 3 hours. ***{exceptionsInTimeSpanAsJson}***"),
+                        new Tuple<string,string>("User",$"Please respond with one a detailed analysis of the new trend."),
+                        new Tuple<string,string>("User",$"Please ensure your response uses well formed HTML. Do not use h1 or h2 header tags."),
+                        new Tuple<string,string>("User",$"The response should be formatted using HTML tags. The entire response should be valid HTML."),
+                        new Tuple<string,string>("User",$"There should be no backticks (i.e. `) in the response."),
+                        new Tuple<string,string>("User",$"If nothing unusual is found in the data respond with the message 'APPLICATIONHEALTHY'."),
+
+                    };
+
+                string generatedInsight = _genAIService.Call(prompt, "", "");
+
+                return generatedInsight;
+            }
+            catch (Exception ex)
+            {
+                return $"<p>There was a problem generating the AI Overview.</p><p><i>{ex.Message}</i></p>";
+            }
+        }
+        private static List<GroupedException> GetExceptionsFromApiAndDB(string timespan, string applicationID, string appInsightsId)
+        {
+            var appFromSQL = _logStore.GetApplication(applicationID);
+            int minutesToGetFromApi = 60 - appFromSQL.NextHourly.Subtract(DateTime.Now).Minutes;
+            var latestLogsFromApi = new List<GroupedException>();
+            latestLogsFromApi = _appInsightsApi.GetGroupedExceptionsV2(appInsightsId, $"{minutesToGetFromApi}m").ToList();
+            foreach (var item in latestLogsFromApi)
+            {
+                item.DateCreated = appFromSQL.NextHourly;
+            }
+            var hourlyLogsFromDB = _logStore.GetGroupedExceptions(applicationID, AppInsightType.Hourly, timespan).ToList();
+            var combined = hourlyLogsFromDB.Concat(latestLogsFromApi).ToList();
+            return combined;
+        }
+        private static int GetTimeSinceLastHourly(string applicationId)
+        {
+            var appFromSQL = _logStore.GetApplication(applicationId);
+            return 60 - appFromSQL.NextHourly.Subtract(DateTime.Now).Minutes;
+        }
         internal static void LogTriggeredAlert(Alert alert)
         {
             string message = GetFriendlyMessage(alert);
