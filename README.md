@@ -15,6 +15,39 @@ Some of the key benefits of this module are as follows:
  - View logs from as far back as the moment you start tracking them
  
  - Extend to track any application using application insights
+
+ - Entra Authentication (more info Switch to Entra Auth)
+
+ - Add the following Alerts (more info Alerting added to App Insights module)
+
+ - Exception Contains String
+
+ - Exception Spike
+
+ - Schedule Task Inactivity
+
+ - Cron Task Inactivity
+
+ - Custom Event
+
+ - Webpage Down
+
+ - Service Bus Queue Exceeds
+
+ - AI Alerts
+
+ - Azure Devops / TFS Integration
+
+ - AI Summary of all Exceptions over given period
+
+ - Ask AI any question about all exceptions in given period
+
+ - AI Analysis and recommendation based Exception and Custom code (from your repo)
+
+ - Generate Work Items or PRs based on Recommendations
+
+ - AI Alerting - this compares recent exceptions against last X days and alerts if it finds anything 'out of ordinary' (all prompts are configurable)
+
  
  --------------------------------
  
