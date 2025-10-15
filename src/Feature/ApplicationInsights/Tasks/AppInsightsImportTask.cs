@@ -16,8 +16,6 @@ namespace DeanOBrien.Feature.ApplicationInsights.Tasks
                 var apps = new List<Item>();
                 if (items.Length == 1)
                 {
-                    Sitecore.Diagnostics.Log.Info("App Insights Import Task: items.Length == 1", this);
-
                     var master = Sitecore.Configuration.Factory.GetDatabase("master");
                     apps = master.GetItem(items[0].ID).GetChildren().Cast<Item>().ToList();
                 }

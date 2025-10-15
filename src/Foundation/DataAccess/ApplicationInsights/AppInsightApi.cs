@@ -83,11 +83,9 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
         [OutputCache(Duration = 240, VaryByParam = "applicationInsightsId,timespan")]
         public List<GroupedException> GetGroupedExceptionsV2(string applicationInsightsId, string timespan)
         {
-            Log.Info("GetGroupedExceptionsV2() start", this);
             if (string.IsNullOrWhiteSpace(applicationInsightsId)) return null;
             string query = BuildBasicQuery(timespan);
             var apiResponse = CallInsightsAPIV2(applicationInsightsId, query);
-            Log.Info("GetGroupedExceptionsV2() end", this);
             return DeserialiseResponse(apiResponse, false);
         }
         [OutputCache(Duration = 240, VaryByParam = "applicationInsightsId,problemIdBase64,innerMostMessageBase64,timespan")]
@@ -110,7 +108,6 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
 
 
             string query = BuildDetailedQuery2(problemIdBase64, innerMostMessageBase64, timespan);
-            Log.Info($"AppInsightsApi: { query }", this);
             var apiResponse = CallInsightsAPIV2(applicationInsightsId, query);
             var x =  DeserialiseResponse2(apiResponse, true);
             return x;
@@ -122,11 +119,9 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights
             if (string.IsNullOrWhiteSpace(timespan)) return new List<CustomEventSummary>();
             if (string.IsNullOrWhiteSpace(customEvent)) return new List<CustomEventSummary>();
 
-            Log.Info("GetCustomEventsV2() start", this);
             if (string.IsNullOrWhiteSpace(applicationInsightsId)) return null;
             string query = BuildCustomEventsQuery(customEvent, timespan);
             var apiResponse = CallInsightsAPIV2(applicationInsightsId, query);
-            Log.Info("GetCustomEventsV2() end", this);
             return DeserialiseCustomEventResponse(apiResponse);
         }
         private static string BuildCustomEventsQuery(string customEvent, string timespan)

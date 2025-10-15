@@ -44,10 +44,8 @@ namespace DeanOBrien.Feature.ApplicationInsights.Tasks
         }
         public void Run(List<Item> items, string taskName)
         {
-            Log.Info("Run() start", this);
             foreach (var item in items)
             {
-                Log.Info($"Run() foreach {item.ID}", this);
                 var applicationId = item.ID.ToString();
                 var application = _logStore.GetApplication(applicationId);
                 if (application == null) application = CreateApplication(item);
@@ -86,7 +84,6 @@ namespace DeanOBrien.Feature.ApplicationInsights.Tasks
                 }
                 if (application.NextDaily < DateTime.Now)
                 {
-                    Sitecore.Diagnostics.Log.Info("App Insights Import Task: NextDaily", this);
                     _logStore.SetNextDaily(applicationId, DateTime.Now.AddHours(24.0));
                     RetrieveLogsAndSaveToStore(applicationId, application, "24hr");
                     Sitecore.Diagnostics.Log.Info("App Insights Import Task: NextDaily set to "+ DateTime.Now.AddHours(24.0).ToShortDateString(), this);

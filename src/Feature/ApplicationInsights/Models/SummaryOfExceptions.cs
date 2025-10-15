@@ -120,7 +120,6 @@ namespace DeanOBrien.Feature.ApplicationInsights.Models
                     {
                         for (int x = 0; x < array.Count(); x++)
                         {
-                            Log.Info($"Attempting to parse ({array[x].Date})", this);
                             if (DateTime.Parse(array[x].Date, CultureInfo.CreateSpecificCulture("en-GB")) == dateTimeFrom)
                             {
                                 stringList.Add(array[x].Count.ToString());

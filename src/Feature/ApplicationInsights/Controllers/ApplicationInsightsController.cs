@@ -95,18 +95,14 @@ namespace DeanOBrien.Feature.ApplicationInsights.Controllers
                 int timespanInMins = GetAjustedTimeSpanInMinutes(timespan, applicationId);
 
                 var exceptions = _appInsightsApi.GetSingleException(appInsightsId, problemIdBase64, innerMostMessageBase64, $"{timespanInMins}m");
-                Log.Info($"AppInsightsController: A", this);
 
-                Log.Info($"AppInsightsController: Total Exceptions:{exceptions?.Count()}",this);
                 var stackTraceVariations = new List<Tuple<string, string, int, int, string>>();
                 foreach (var item in exceptions)
                 {
-                    Log.Info($"AppInsightsController: B", this);
                     var systemPrompt = $"Please consider the stack trace enclosed by *** and offer a suggestion on how to fix the problem. ***{item.Details}***";
 
                     if (!string.IsNullOrWhiteSpace(item.Path) && item.Line > 0)
                     {
-                        Log.Info($"AppInsightsController: C", this);
                         systemPrompt = $"Please consider the exception enclosed by ***, which refers to line {item.Line} of the code enclosed by +++ and offer a suggestion on how to fix the problem. ***{item.Details}***.";
                     }
                     var systemPromptBase64 = Base64Encode(systemPrompt);
@@ -114,14 +110,11 @@ namespace DeanOBrien.Feature.ApplicationInsights.Controllers
 
                     if (stackTraceVariations.Where(x => x.Item1 == item.Details && x.Item2 == item.Path && x.Item3 == item.Line).FirstOrDefault() == null)
                     {
-                        Log.Info($"AppInsightsController: D", this);
                         stackTraceVariations.Add(new Tuple<string, string, int, int, string>(item.Details, item.Path, item.Line, 1, systemPromptBase64));
                         continue;
                     }
                     var index = stackTraceVariations.FindIndex(x => x.Item1 == item.Details && x.Item2 == item.Path && x.Item3 == item.Line);
-                    Log.Info($"AppInsightsController: E", this);
                     stackTraceVariations[index] = Tuple.Create(item.Details, item.Path, item.Line, stackTraceVariations[index].Item4 + 1, systemPromptBase64);
-                    Log.Info($"AppInsightsController: F{index}", this);
                 }
                 viewModel.StackTraceVariations = stackTraceVariations;
 

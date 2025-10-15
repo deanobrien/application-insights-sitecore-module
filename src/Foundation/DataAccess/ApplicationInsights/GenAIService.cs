@@ -27,8 +27,6 @@ namespace DeanOBrien.Foundation.DataAccess.ApplicationInsights.ApplicationInsigh
 
         public GenAIService()
         {
-            Log.Info("GenAIService()", "GenAIService");
-
             IsReady = false;
             try
             {
