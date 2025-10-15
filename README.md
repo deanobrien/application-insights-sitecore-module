@@ -24,17 +24,17 @@ Some of the key benefits of this module are as follows:
 
    - Exception Spike
 
- - Schedule Task Inactivity
+   - Schedule Task Inactivity
 
- - Cron Task Inactivity
+   - Cron Task Inactivity
 
- - Custom Event
+   - Custom Event
 
- - Webpage Down
+   - Webpage Down
 
- - Service Bus Queue Exceeds
+   - Service Bus Queue Exceeds
 
- - AI Alerts
+   - AI Alerts
 
  - Azure Devops / TFS Integration
 
