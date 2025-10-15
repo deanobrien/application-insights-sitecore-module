@@ -1,0 +1,155 @@
+CREATE PROCEDURE [dbo].[FindAppInsightLogById]
+@LogId nvarchar(50)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT Id,ApplicationId,AppInsightType,ProblemId,ProblemIdBase64, OuterType, Type, InnerMostType, OuterAssembly, Assembly, OuterMethod, Method, ExceptionCount, DateCreated FROM AppInsightLogs WHERE Id= @LogId
+END
+GO
+CREATE   PROCEDURE [dbo].[FindAppInsightLogsById]
+@ApplicationId nvarchar(50),
+@DateFrom datetime,
+@AppInsightType int
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT Id,ApplicationId,AppInsightType,ProblemId,ProblemIdBase64, OuterType, Type, InnerMostType, OuterAssembly, Assembly, OuterMethod, Method, ExceptionCount, DateCreated FROM AppInsightLogs WHERE ApplicationId= @ApplicationId AND AppInsightType=@AppInsightType AND DateCreated > @DateFrom
+END
+GO
+CREATE PROCEDURE [dbo].[FindAppInsightLogsByIdAndProblemId]
+@ApplicationId nvarchar(50),
+@ProblemIdBase64 nvarchar(500),
+@DateFrom datetime,
+@AppInsightType int
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT Id,ApplicationId,AppInsightType,ProblemId,ProblemIdBase64, OuterType, Type, InnerMostType, OuterAssembly, Assembly, OuterMethod, Method, ExceptionCount, DateCreated FROM AppInsightLogs WHERE ApplicationId= @ApplicationId AND AppInsightType=@AppInsightType AND ProblemIdBase64=@ProblemIdBase64 AND DateCreated > @DateFrom
+END
+GO
+CREATE PROCEDURE [dbo].[FindApplicationById]
+@ApplicationId nvarchar(50)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT * FROM Applications WHERE Id = @ApplicationId
+END
+GO
+CREATE PROCEDURE [dbo].[FindTriggeredAlertsById]
+@ApplicationId nvarchar(50),
+@DateFrom datetime
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT Id,ApplicationId,AlertId,Title,DateTriggered FROM TriggeredAlerts WHERE [ApplicationId]= @ApplicationId AND DateTriggered > @DateFrom
+END
+GO
+CREATE PROCEDURE [dbo].[InsertAppInsightLog]
+	-- Add the parameters for the stored procedure here
+	@ApplicationId nvarchar(50),
+	@AppInsightType int,
+	@DateCreated nvarchar(50),
+	@ProblemId nvarchar(max),
+	@ProblemIdBase64 nvarchar(max),
+	@OuterType nvarchar(max),
+	@Type nvarchar(max),
+	@InnermostType nvarchar(max),
+	@OuterAssembly nvarchar(max),
+	@Assembly nvarchar(max),
+	@OuterMethod nvarchar(max),
+	@Method nvarchar(max),
+	@Count int
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	INSERT INTO AppInsightLogs (ApplicationId, AppInsightType, DateCreated, ProblemId, ProblemIdBase64, OuterType, Type, InnermostType, OuterAssembly, Assembly, OuterMethod, Method, ExceptionCount) Values (@ApplicationId, @AppInsightType, @DateCreated, @ProblemId, @ProblemIdBase64, @OuterType, @Type, @InnermostType,@OuterAssembly ,@Assembly,@OuterMethod,@Method,@Count)
+END
+GO
+CREATE PROCEDURE [dbo].[InsertApplication]
+	-- Add the parameters for the stored procedure here
+	@ApplicationId nvarchar(50),
+	@Title nvarchar(50),
+	@InsightsId nvarchar(50),
+	@InsightsKey nvarchar(50),
+	@NextHourly datetime,
+	@NextDaily datetime
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	INSERT INTO Applications (Id, Title, NextHourly, NextDaily, ApplicationInsightsId, ApplicationInsigtsKey) Values (@ApplicationId, @Title, @NextHourly, @NextDaily, @InsightsId, @InsightsKey)
+END
+GO
+CREATE PROCEDURE [dbo].[InsertTriggeredAlert]
+	-- Add the parameters for the stored procedure here
+	@ApplicationId nvarchar(50),
+	@Title nvarchar(50),
+	@AlertId nvarchar(50),
+	@DateTriggered datetime
+	AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	INSERT INTO TriggeredAlerts (ApplicationId, AlertId, Title, DateTriggered) Values (@ApplicationId, @AlertId, @Title, @DateTriggered)
+END
+GO
+CREATE PROCEDURE [dbo].[SetNextDaily]
+@ApplicationId nvarchar(50),
+@NextDaily datetime
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	UPDATE Applications 
+	SET NextDaily = @NextDaily
+	WHERE Id = @ApplicationId
+END
+GO
+CREATE PROCEDURE [dbo].[SetNextHourly]
+@ApplicationId nvarchar(50),
+@NextHourly datetime
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	UPDATE Applications 
+	SET NextHourly = @NextHourly
+	WHERE Id = @ApplicationId
+END
+GO

@@ -313,60 +313,60 @@
                     string stackTrace = JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
                     stackTrace = stackTrace.Replace("<!--", "");
                     stackTrace = stackTrace.Replace("-->", "");
-        <div id="variation@(i)" class="variation" style="@displayString">
-            <p>There were <b>@item.Item4</b> exceptions that share the stack trace below</p>
-            @if (!string.IsNullOrWhiteSpace(item.Item2) && item.Item3 > 0)
-            {
-                <p>The following custom code should be reviewed: <b>@item.Item2</b> [Line: @item.Item3]</p>
-                <p></p>
-            }
+                    <div id="variation@(i)" class="variation" style="@displayString">
+                        <p>There were <b>@item.Item4</b> exceptions that share the stack trace below</p>
+                        @if (!string.IsNullOrWhiteSpace(item.Item2) && item.Item3 > 0)
+                        {
+                            <p>The following custom code should be reviewed: <b>@item.Item2</b> [Line: @item.Item3]</p>
+                            <p></p>
+                        }
 
-            <pre style="height:200px">@Html.Raw(stackTrace)</pre>
+                        <pre style="height:200px">@Html.Raw(stackTrace)</pre>
 
-            <div id="aiOverviewContainer@(i)" class="aiOverviewContainer" style="display:none">
-                <h3>
-                    <svg class="fWWlmf JzISke" height="24" width="24" aria-hidden="true" viewBox="0 0 471 471" xmlns="http://www.w3.org/2000/svg"><path fill="var(--m3c23)" d="M235.5 471C235.5 438.423 229.22 407.807 216.66 379.155C204.492 350.503 187.811 325.579 166.616 304.384C145.421 283.189 120.498 266.508 91.845 254.34C63.1925 241.78 32.5775 235.5 0 235.5C32.5775 235.5 63.1925 229.416 91.845 217.249C120.498 204.689 145.421 187.811 166.616 166.616C187.811 145.421 204.492 120.497 216.66 91.845C229.22 63.1925 235.5 32.5775 235.5 0C235.5 32.5775 241.584 63.1925 253.751 91.845C266.311 120.497 283.189 145.421 304.384 166.616C325.579 187.811 350.503 204.689 379.155 217.249C407.807 229.416 438.423 235.5 471 235.5C438.423 235.5 407.807 241.78 379.155 254.34C350.503 266.508 325.579 283.189 304.384 304.384C283.189 325.579 266.311 350.503 253.751 379.155C241.584 407.807 235.5 438.423 235.5 471Z"></path></svg> AI Analysis
-                </h3>
-                <div id="azure-result" style="display:none"><img src="/sitecore/shell/client/Applications/ApplicationInsights/img/loading-dots.gif" width="100px"></div>
-                <div id="azure-actions" style="display:none">
-                    @if (Model.WorkItemId == 0)
-                    {
-                        <p>If you are happy with the suggested changes you can submit a <b>pull request</b>. Alternatively, save the recommendations in a <b>work item</b> below.</p>
+                        <div id="aiOverviewContainer@(i)" class="aiOverviewContainer" style="display:none">
+                            <h3>
+                                <svg class="fWWlmf JzISke" height="24" width="24" aria-hidden="true" viewBox="0 0 471 471" xmlns="http://www.w3.org/2000/svg"><path fill="var(--m3c23)" d="M235.5 471C235.5 438.423 229.22 407.807 216.66 379.155C204.492 350.503 187.811 325.579 166.616 304.384C145.421 283.189 120.498 266.508 91.845 254.34C63.1925 241.78 32.5775 235.5 0 235.5C32.5775 235.5 63.1925 229.416 91.845 217.249C120.498 204.689 145.421 187.811 166.616 166.616C187.811 145.421 204.492 120.497 216.66 91.845C229.22 63.1925 235.5 32.5775 235.5 0C235.5 32.5775 241.584 63.1925 253.751 91.845C266.311 120.497 283.189 145.421 304.384 166.616C325.579 187.811 350.503 204.689 379.155 217.249C407.807 229.416 438.423 235.5 471 235.5C438.423 235.5 407.807 241.78 379.155 254.34C350.503 266.508 325.579 283.189 304.384 304.384C283.189 325.579 266.311 350.503 253.751 379.155C241.584 407.807 235.5 438.423 235.5 471Z"></path></svg> AI Analysis
+                            </h3>
+                            <div id="azure-result" style="display:none"><img src="/sitecore/shell/client/Applications/ApplicationInsights/img/loading-dots.gif" width="100px"></div>
+                            <div id="azure-actions" style="display:none">
+                                @if (Model.WorkItemId == 0)
+                                {
+                                    <p>If you are happy with the suggested changes you can submit a <b>pull request</b>. Alternatively, save the recommendations in a <b>work item</b> below.</p>
 
-                        <form onsubmit="return false;" style="display:inline-block">
-                            <input type="hidden" id="base64AiOverviewPR@(i)" name="base64AiOverviewPR@(i)" />
-                            <input type="hidden" id="fileNamePR@(i)" name="fileNamePR@(i)" />
-                            <input type="hidden" id="problemIdBase64" name="problemIdBase64" value="@(Model.ProblemIdBase64)">
-                            <input type="submit" value="Submit a pull request" class="btn btn-success" onclick="CreatePR(@(i));" />
-                        </form>
+                                    <form onsubmit="return false;" style="display:inline-block">
+                                        <input type="hidden" id="base64AiOverviewPR@(i)" name="base64AiOverviewPR@(i)" />
+                                        <input type="hidden" id="fileNamePR@(i)" name="fileNamePR@(i)" />
+                                        <input type="hidden" id="problemIdBase64" name="problemIdBase64" value="@(Model.ProblemIdBase64)">
+                                        <input type="submit" value="Submit a pull request" class="btn btn-success" onclick="CreatePR(@(i));" />
+                                    </form>
 
-                        <form onsubmit="return false;" style="display:inline-block">
-                            <input type="hidden" id="base64AiOverview@(i)" name="base64AiOverview@(i)" />
-                            <input type="hidden" id="fileName@(i)" name="fileName@(i)" />
-                            <input type="hidden" id="problemIdBase64" name="problemIdBase64" value="@(Model.ProblemIdBase64)">
-                            <input type="submit" value="Create a backlog item" class="btn btn-primary" onclick="SubmitToBacklog(@(i));" />
-                        </form>
-                    }
-                    else
-                    {
-                        <div class="alert alert-warning"><p>You are unable to create a pull request or a work item, because work item #@(Model.WorkItemId) covers the same problem.</p></div>
-                    }
-                </div>
+                                    <form onsubmit="return false;" style="display:inline-block">
+                                        <input type="hidden" id="base64AiOverview@(i)" name="base64AiOverview@(i)" />
+                                        <input type="hidden" id="fileName@(i)" name="fileName@(i)" />
+                                        <input type="hidden" id="problemIdBase64" name="problemIdBase64" value="@(Model.ProblemIdBase64)">
+                                        <input type="submit" value="Create a backlog item" class="btn btn-primary" onclick="SubmitToBacklog(@(i));" />
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning"><p>You are unable to create a pull request or a work item, because work item #@(Model.WorkItemId) covers the same problem.</p></div>
+                                }
+                            </div>
 
-                <div id="aiOverview@(i)"><p><img src="/sitecore/shell/client/Applications/ApplicationInsights/img/loading-dots.gif" width="100px"></p></div>
+                            <div id="aiOverview@(i)"><p><img src="/sitecore/shell/client/Applications/ApplicationInsights/img/loading-dots.gif" width="100px"></p></div>
 
-            </div>
+                        </div>
 
-            @if (!string.IsNullOrEmpty(Model.AnalysisFromWorkItem))
-            {
-                <div>
-                    <h3>Work Item Found</h3>
-                    <p>A <a href="https://unn-tfs.visualstudio.com/UNN-DEV-Apps-CorpWebsite-GIT/_workitems/edit/@(Model.WorkItemId)/" target="_blank">work item #@(Model.WorkItemId)</a> exists in Azure Devops that deals with this problem.</p>
-                    @Html.Raw(Model.AnalysisFromWorkItem)
-                </div>
-            }
+                        @if (!string.IsNullOrEmpty(Model.AnalysisFromWorkItem))
+                        {
+                            <div>
+                                <h3>Work Item Found</h3>
+                                <p>A <a href="https://unn-tfs.visualstudio.com/UNN-DEV-Apps-CorpWebsite-GIT/_workitems/edit/@(Model.WorkItemId)/" target="_blank">work item #@(Model.WorkItemId)</a> exists in Azure Devops that deals with this problem.</p>
+                                @Html.Raw(Model.AnalysisFromWorkItem)
+                            </div>
+                        }
 
-        </div>
+                    </div>
 
                     i++;
                 }
@@ -548,7 +548,7 @@
         return false;
     }
     function CallSummaryAfterPageLoad() {
-        @if (string.IsNullOrEmpty(Model.ProblemIdBase64))
+        @if (string.IsNullOrEmpty(Model.ProblemIdBase64) && Model.SummaryOfExceptions !=null)
         {
             <text>getAISummary(id, '@(Model.SummaryOfExceptions.HoursToReview)h', ''); </text>
         }
@@ -558,7 +558,7 @@
     function CallAISummary() {
 $("#aiSummaryContainer").show();
 
-        @if (string.IsNullOrEmpty(Model.ProblemIdBase64) && Model.SummaryOfExceptions != null && Model.SummaryOfExceptions.HoursToReview!=null)
+        @if (string.IsNullOrEmpty(Model.ProblemIdBase64) && Model.SummaryOfExceptions !=null)
         {
             <text>getAISummary(id, '@(Model.SummaryOfExceptions.HoursToReview)h', ''); </text>
         }
