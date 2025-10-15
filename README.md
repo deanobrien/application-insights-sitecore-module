@@ -53,10 +53,11 @@ Some of the key benefits of this module are as follows:
  
  Installation Instructions
  
- 1) Download zip file and unpack
- 2) Install new ApplicationInsights database using DACPAC
- 3) Install Sitecore package
- 4) Go to [Azure Portal and configure Microsoft Entra Authentication](https://deanobrien.uk/update-application-insights-module-to-switch-to-use-entra-authentication/)
+ 1) Download package file and SQL files
+ 2) Create new database
+ 3) Create Tables and Stored Procedure (using SQL from Repo)
+ 4) Install Sitecore package
+ 5) Go to [Application Insights Module - How to Configure](https://deanobrien.uk/application-insights-for-sitecore-module/)
  6) Go to Dashboard => Application Insights
  
  
