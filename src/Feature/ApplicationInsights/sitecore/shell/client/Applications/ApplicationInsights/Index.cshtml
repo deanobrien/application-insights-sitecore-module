@@ -538,23 +538,6 @@
         aiContainer.innerHTML = '<p><img src="/sitecore/shell/client/Applications/ApplicationInsights/img/loading-dots.gif" width="100px"></p>';
         getAISummary(id, t, additional);
     }
-    @*function CallOverviewAfterPageLoad() {
-
-        @if (Model.StackTraceVariations.Count > 0)
-        {
-            <text>getAIOverview(systemPrompt, file, variationId); </text>
-        }
-        console.log('CallOverviewAfterPageLoad');
-        return false;
-    }
-    function CallSummaryAfterPageLoad() {
-        @if (string.IsNullOrEmpty(Model.ProblemIdBase64) && Model.SummaryOfExceptions !=null)
-        {
-            <text>getAISummary(id, '@(Model.SummaryOfExceptions.HoursToReview)h', ''); </text>
-        }
-        console.log('CallSummaryAfterPageLoad');
-        return false;
-    }*@
     function CallAISummary() {
 $("#aiSummaryContainer").show();
 

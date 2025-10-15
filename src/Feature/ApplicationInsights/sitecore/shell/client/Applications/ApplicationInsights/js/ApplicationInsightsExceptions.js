@@ -54,7 +54,7 @@ function loadExceptionCluster(id, problemIdBase64, innerMessageBase64, timespan)
             loader.hide();
         });
     }).then(function () {
-        CallOverviewAfterPageLoad();
+        
     }).always(function () {
         console.log("Json calls complete");
     });
