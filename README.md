@@ -20,9 +20,9 @@ Some of the key benefits of this module are as follows:
 
  - Add the following Alerts (more info Alerting added to App Insights module)
 
- - Exception Contains String
+   - Exception Contains String
 
- - Exception Spike
+   - Exception Spike
 
  - Schedule Task Inactivity
 
