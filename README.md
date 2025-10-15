@@ -61,4 +61,4 @@ Some of the key benefits of this module are as follows:
  6) Go to Dashboard => Application Insights
  
  
-> If you try this module and find it helpful or have any issues - it would be nice to know via LinkedIn!
+> If you try this module and find it helpful or have any issues - it would be nice to know via LinkedIn or Slack!
